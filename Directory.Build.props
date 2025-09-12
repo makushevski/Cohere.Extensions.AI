@@ -1,0 +1,25 @@
+<Project>
+    <PropertyGroup>
+        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+        <LangVersion>preview</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <AnalysisLevel>latest</AnalysisLevel>
+        
+        <Deterministic>true</Deterministic>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+        <Authors>Denis Makushevskii</Authors>
+        <Company>Community</Company>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/makushevski/Cohere.Extensions.AI</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageProjectUrl>https://github.com/makushevski/Cohere.Extensions.AI</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Description>Community-maintained Microsoft.Extensions.AI adapter for Cohere API.</Description>
+        <PackageTags>AI;Cohere;Microsoft.Extensions.AI;LLM;dotnet</PackageTags>
+        <PackageReleaseNotes>Initial release with chat completion support.</PackageReleaseNotes>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    </PropertyGroup>
+    
+</Project>
