@@ -1,10 +1,12 @@
 <Project>
     <PropertyGroup>
         <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
-        <LangVersion>preview</LangVersion>
+        <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <AnalysisLevel>latest</AnalysisLevel>
+
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
         
         <Deterministic>true</Deterministic>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -20,6 +22,7 @@
         <PackageTags>AI;Cohere;Microsoft.Extensions.AI;LLM;dotnet</PackageTags>
         <PackageReleaseNotes>Initial release with chat completion support.</PackageReleaseNotes>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    </PropertyGroup>
-    
+</PropertyGroup>
+
+    <Import Project="Packages.Build.props" Condition="Exists('Packages.Build.props')" />
 </Project>

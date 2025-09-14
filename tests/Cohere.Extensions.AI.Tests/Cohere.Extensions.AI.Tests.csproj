@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkVersion)"/>
+    <PackageReference Include="NUnit" Version="$(NUnitVersion)"/>
+    <PackageReference Include="NUnit3TestAdapter" Version="$(NUnit3TestAdapterVersion)"/>
+    <PackageReference Include="NUnit.Analyzers" Version="$(NUnitAnalyzersVersion)"/>
+    <PackageReference Include="coverlet.collector" Version="$(CoverletCollectorVersion)"/>
+    </ItemGroup>
+
+  <ItemGroup>
+      <ProjectReference Include="..\..\src\Cohere.Extensions.AI\Cohere.Extensions.AI.csproj" />
+      <ProjectReference Include="..\..\src\Cohere.Client\Cohere.Client.csproj" />
+  </ItemGroup>
+
+</Project>
