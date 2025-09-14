@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cohere.Client.Abstractions;
 using Cohere.Client.Configuration;
+using Cohere.Client.Helpers;
 using Cohere.Client.Models;
 using Cohere.Client.Models.V1;
 
@@ -20,7 +21,6 @@ public class CohereClient : ICohereClient
     private readonly Uri baseUri;
     private readonly bool disposeHttpClient;
     private readonly HttpClient httpClient;
-    private readonly JsonSerializerOptions json;
 
     public CohereClient(string apiKey, HttpClient? httpClient = null, Uri? baseUri = null)
     {
@@ -32,33 +32,26 @@ public class CohereClient : ICohereClient
 
         if (!this.httpClient.DefaultRequestHeaders.Contains("Authorization"))
             this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-
-        json = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            PropertyNameCaseInsensitive = true
-        };
     }
 
     public Task<ChatResponseV1> ChatV1Async(ChatRequestV1 request, CancellationToken cancellationToken = default)
-        => PostJsonAsync<ChatRequestV1, ChatResponseV1>("v1/chat", request, cancellationToken);
+        => httpClient.PostJsonAsync<ChatRequestV1, ChatResponseV1>("v1/chat", request, cancellationToken);
 
     public async IAsyncEnumerable<ChatStreamEventV1> ChatStreamV1Async(ChatRequestV1 request,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken ct = default)
     {
         request.Stream ??= true;
-        await foreach (var e in PostSseAsync<ChatRequestV1, ChatStreamEventV1>("v1/chat", request, cancellationToken))
+        await foreach (var e in httpClient.PostSseAsync<ChatRequestV1, ChatStreamEventV1>("v1/chat", request, ct))
             yield return e;
     }
 
-    public Task<ChatResponseV2> ChatV2Async(ChatRequestV2 requestV2, CancellationToken cancellationToken = default)
-        => PostJsonAsync<ChatRequestV2, ChatResponseV2>("v2/chat", requestV2, cancellationToken);
+    public Task<ChatResponseV2> ChatV2Async(ChatRequestV2 requestV2, CancellationToken ct = default)
+        => httpClient.PostJsonAsync<ChatRequestV2, ChatResponseV2>("v2/chat", requestV2, ct);
 
     public async IAsyncEnumerable<ChatStreamEventV2> ChatStreamV2Async(ChatRequestV2 requestV2,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken ct = default)
     {
-        await foreach (var e in PostSseAsync<ChatRequestV2, ChatStreamEventV2>("v2/chat", requestV2, cancellationToken))
+        await foreach (var e in httpClient.PostSseAsync<ChatRequestV2, ChatStreamEventV2>("v2/chat", requestV2, ct))
             yield return e;
     }
 
@@ -66,24 +59,5 @@ public class CohereClient : ICohereClient
     {
         if (disposeHttpClient)
             httpClient.Dispose();
-    }
-
-    private async Task<TResponse> PostJsonAsync<TRequest, TResponse>(string relativePath, TRequest request,
-        CancellationToken ct)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        using var req = new HttpRequestMessage(HttpMethod.Post, new Uri(baseUri, relativePath))
-        {
-            Content = new StringContent(JsonSerializer.Serialize(request, json), Encoding.UTF8, "application/json")
-        };
-
-        using var resp = await httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct)
-            .ConfigureAwait(false);
-        await EnsureSuccessAsync(resp, ct).ConfigureAwait(false);
-
-        await using var stream = await resp.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
-        var result = await JsonSerializer.DeserializeAsync<TResponse>(stream, json, ct).ConfigureAwait(false);
-        if (result == null) throw new InvalidOperationException("Failed to deserialize response body.");
-        return result;
     }
 }

@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Cohere.Client.Configuration;
 using Cohere.Client.Models;
 using Cohere.Client.Models.V1;
 
@@ -19,10 +20,10 @@ internal static class SseParser
         [EnumeratorCancellation] CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
-        using var req = new HttpRequestMessage(HttpMethod.Post, new Uri(baseUri, relativePath));
+        using var req = new HttpRequestMessage(HttpMethod.Post, new Uri(new Uri(Constants.CohereApiUri), relativePath));
         req.Headers.Accept.Clear();
         req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
-        var payload = JsonSerializer.Serialize(request, json);
+        var payload = JsonSerializer.Serialize(request, JsonSettings.JsonOptions);
         req.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 
         using var resp = await httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct)
@@ -30,7 +31,36 @@ internal static class SseParser
         await EnsureSuccessAsync(resp, ct).ConfigureAwait(false);
 
         await using var stream = await resp.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
-        using var reader = new StreamReader(stream, Encoding.UTF8);
+        await foreach (var result in ReadSseStreamAsync<TEvent>(stream, ct).ConfigureAwait(false))
+        {
+            yield return result;
+        }
+
+    }
+
+    public static async Task<TResponse> PostJsonAsync<TRequest, TResponse>(this HttpClient httpClient, string relativePath, TRequest request,
+        CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        using var req = new HttpRequestMessage(HttpMethod.Post, new Uri(new Uri(Constants.CohereApiUri), relativePath))
+        {
+            Content = new StringContent(JsonSerializer.Serialize(request, JsonSettings.JsonOptions), Encoding.UTF8, "application/json")
+        };
+
+        using var resp = await httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct)
+            .ConfigureAwait(false);
+        await EnsureSuccessAsync(resp, ct).ConfigureAwait(false);
+
+        await using var stream = await resp.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+        var result = await JsonSerializer.DeserializeAsync<TResponse>(stream, JsonSettings.JsonOptions, ct).ConfigureAwait(false);
+        if (result == null) throw new InvalidOperationException("Failed to deserialize response body.");
+        return result;
+    }
+
+    private static async IAsyncEnumerable<TEvent> ReadSseStreamAsync<TEvent>(Stream input,
+        [EnumeratorCancellation] CancellationToken ct)
+    {
+        using var reader = new StreamReader(input, Encoding.UTF8);
 
         string? line;
         while (!reader.EndOfStream && (line = await reader.ReadLineAsync(ct).ConfigureAwait(false)) is not null)
@@ -39,7 +69,6 @@ internal static class SseParser
 
             if (line.Length == 0) continue; // keep-alive/record delimiter
 
-            // Expect lines like: "data: {...json...}" or "data: [DONE]"
             if (line.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
             {
                 var data = line.Substring(5).TrimStart();
@@ -51,7 +80,7 @@ internal static class SseParser
                 var success = false;
                 try
                 {
-                    evt = JsonSerializer.Deserialize<TEvent>(data, json);
+                    evt = JsonSerializer.Deserialize<TEvent>(data, JsonSettings.JsonOptions);
                     success = evt is not null;
                 }
                 catch
@@ -79,12 +108,6 @@ internal static class SseParser
                 }
             }
         }
-    }
-
-    private static async IAsyncEnumerable<TEvent> PostSseAsync<TEvent>(Stream input,
-        [EnumeratorCancellation] CancellationToken ct)
-    {
-
     }
 
     private static async Task EnsureSuccessAsync(HttpResponseMessage resp, CancellationToken ct)

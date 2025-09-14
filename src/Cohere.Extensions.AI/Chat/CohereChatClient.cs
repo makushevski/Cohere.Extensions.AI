@@ -11,7 +11,7 @@ namespace Cohere.Extensions.AI.Chat;
 /// <summary>
 ///     Microsoft.Extensions.AI chat client backed by Cohere Chat API (v2 by default).
 /// </summary>
-public sealed class CohereChatClient : IChatClient, IAsyncDisposable
+public sealed class CohereChatClient : IChatClient
 {
     private readonly ICohereClient cohere;
     private readonly CohereChatClientOptions options;
@@ -22,7 +22,6 @@ public sealed class CohereChatClient : IChatClient, IAsyncDisposable
         this.options = options ?? new CohereChatClientOptions();
     }
 
-    public ValueTask DisposeAsync() => cohere.DisposeAsync();
 
     public async Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options,
         CancellationToken cancellationToken)
@@ -141,7 +140,7 @@ public sealed class CohereChatClient : IChatClient, IAsyncDisposable
     public object? GetService(Type serviceType, object? serviceKey) =>
         serviceType == typeof(ICohereClient) ? cohere : null;
 
-    public void Dispose() => cohere.DisposeAsync().AsTask().GetAwaiter().GetResult();
+    public void Dispose() => cohere.Dispose();
 
     private static IList<ChatMessageV2> Map(IEnumerable<ChatMessage> messages)
     {
