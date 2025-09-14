@@ -1,29 +1,27 @@
 using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Text;
 
 namespace Cohere.Client.Tests.Fakes;
 
 internal sealed class FakeHttpMessageHandler : HttpMessageHandler
 {
-    private readonly Func<HttpRequestMessage, HttpResponseMessage> _handler;
+    private readonly Func<HttpRequestMessage, HttpResponseMessage> handler;
 
     public FakeHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> handler)
     {
-        _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+        this.handler = handler ?? throw new ArgumentNullException(nameof(handler));
     }
 
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+        CancellationToken cancellationToken)
     {
-        var response = _handler(request);
+        var response = handler(request);
         return Task.FromResult(response);
     }
 
     public static HttpResponseMessage Json(HttpStatusCode code, string json)
-        => new HttpResponseMessage(code)
+        => new(code)
         {
-            Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+            Content = new StringContent(json, Encoding.UTF8, "application/json")
         };
 }
-

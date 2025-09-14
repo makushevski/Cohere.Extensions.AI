@@ -1,9 +1,8 @@
-using Coh = Cohere.Client.Models;
-using CohV1 = Cohere.Client.Models.V1;
 using Cohere.Extensions.AI.Chat;
 using Cohere.Extensions.AI.Tests.Fakes;
+using Coh = Cohere.Client.Models;
+using CohV1 = Cohere.Client.Models.V1;
 using Meai = Microsoft.Extensions.AI;
-using NUnit.Framework;
 
 namespace Cohere.Extensions.AI.Tests;
 
@@ -16,7 +15,7 @@ public class CohereChatClientTests
         // Arrange
         var fake = new FakeCohereClient
         {
-            OnChatAsync = req => Task.FromResult(new Coh.ChatResponse { Id = "id", Text = "ok" })
+            OnChatAsync = req => Task.FromResult(new Coh.ChatResponseV2 { Id = "id", Text = "ok" })
         };
 
         var sut = new CohereChatClient(fake, new CohereChatClientOptions { ModelId = "command" });
@@ -43,8 +42,8 @@ public class CohereChatClientTests
         {
             OnChatStreamAsync = req => GetAsync(new[]
             {
-                new Coh.ChatStreamEvent { Delta = "a" },
-                new Coh.ChatStreamEvent { Delta = "b" }
+                new Coh.ChatStreamEventV2 { Delta = "a" },
+                new Coh.ChatStreamEventV2 { Delta = "b" }
             })
         };
 
@@ -54,9 +53,8 @@ public class CohereChatClientTests
         // Act
         var deltas = new List<string>();
         await foreach (var u in sut.GetStreamingResponseAsync(messages, new Meai.ChatOptions(), CancellationToken.None))
-        {
-            if (!string.IsNullOrEmpty(u.Text)) deltas.Add(u.Text!);
-        }
+            if (!string.IsNullOrEmpty(u.Text))
+                deltas.Add(u.Text!);
 
         // Assert
         CollectionAssert.AreEqual(new[] { "a", "b" }, deltas);
@@ -109,11 +107,9 @@ public class CohereChatClientTests
         var messages = new[] { new Meai.ChatMessage(Meai.ChatRole.User, "hello") };
 
         // Act
-        string concatenated = string.Empty;
+        var concatenated = string.Empty;
         await foreach (var u in sut.GetStreamingResponseAsync(messages, new Meai.ChatOptions(), CancellationToken.None))
-        {
             concatenated += u.Text;
-        }
 
         // Assert
         Assert.That(concatenated, Is.EqualTo("full"));

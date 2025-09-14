@@ -2,8 +2,7 @@
 
   <!-- Uses settings from Directory.Build.props at repo root -->
 
-  <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
-
+  <PropertyGroup>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
 </Project>

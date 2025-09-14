@@ -1,13 +1,13 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using Cohere.Client.Models.V1;
 using Cohere.Client.Tests.Fakes;
-using NUnit.Framework;
 
 namespace Cohere.Client.Tests;
 
 [TestFixture]
-public class CohereClientTests_ChatV1
+public class CohereClientTestsChatV1
 {
     [Test]
     public async Task ChatV1_SendsMessageField_AndReturnsText()
@@ -29,10 +29,10 @@ public class CohereClientTests_ChatV1
         });
 
         var http = new HttpClient(handler) { BaseAddress = new Uri("https://api.cohere.ai/") };
-        var client = new Cohere.Client.CohereClient("KEY", http);
+        var client = new CohereClient("KEY", http);
 
         // Act
-        var resp = await client.ChatV1Async(new Models.V1.ChatRequestV1
+        var resp = await client.ChatV1Async(new ChatRequestV1
         {
             Model = "command-r-plus",
             Message = "Hi"
@@ -74,16 +74,15 @@ public class CohereClientTests_ChatV1
         });
 
         var http = new HttpClient(handler) { BaseAddress = new Uri("https://api.cohere.ai/") };
-        var client = new Cohere.Client.CohereClient("KEY", http);
+        var client = new CohereClient("KEY", http);
 
-        var req = new Models.V1.ChatRequestV1 { Model = "command", Message = "Hello", Stream = true };
+        var req = new ChatRequestV1 { Model = "command", Message = "Hello", Stream = true };
 
         // Act
         var deltas = new List<string>();
         await foreach (var e in client.ChatStreamV1Async(req))
-        {
-            if (!string.IsNullOrEmpty(e.Delta)) deltas.Add(e.Delta!);
-        }
+            if (!string.IsNullOrEmpty(e.Delta))
+                deltas.Add(e.Delta!);
 
         // Assert
         Assert.That(deltas, Is.EqualTo(new[] { "Part1", "Part2" }));
@@ -92,13 +91,14 @@ public class CohereClientTests_ChatV1
     [Test]
     public async Task ChatV1_Errors_IncludeBodyInException()
     {
-        var handler = new FakeHttpMessageHandler(_ => FakeHttpMessageHandler.Json(HttpStatusCode.BadRequest, "{\"message\":\"invalid\"}"));
+        var handler = new FakeHttpMessageHandler(_ =>
+            FakeHttpMessageHandler.Json(HttpStatusCode.BadRequest, "{\"message\":\"invalid\"}"));
         var http = new HttpClient(handler) { BaseAddress = new Uri("https://api.cohere.ai/") };
-        var client = new Cohere.Client.CohereClient("KEY", http);
+        var client = new CohereClient("KEY", http);
 
-        var ex = Assert.ThrowsAsync<HttpRequestException>(async () => await client.ChatV1Async(new Models.V1.ChatRequestV1 { Model = "m", Message = "x" }));
+        var ex = Assert.ThrowsAsync<HttpRequestException>(async () =>
+            await client.ChatV1Async(new ChatRequestV1 { Model = "m", Message = "x" }));
         Assert.That(ex!.Message, Does.Contain("400"));
         Assert.That(ex!.Message, Does.Contain("invalid"));
     }
 }
-

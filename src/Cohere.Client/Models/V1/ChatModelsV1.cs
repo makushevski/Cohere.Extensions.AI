@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace Cohere.Client.Models.V1;
 
 /// <summary>
-/// Request schema for Cohere API v1 Chat endpoint (/v1/chat).
-/// See https://docs.cohere.com/reference/chat
+///     Request schema for Cohere API v1 Chat endpoint (/v1/chat).
+///     See https://docs.cohere.com/reference/chat
 /// </summary>
 public class ChatRequestV1
 {
@@ -19,16 +19,16 @@ public class ChatRequestV1
 }
 
 /// <summary>
-/// Chat message for v1 chat API.
+///     Chat message for v1 chat API.
 /// </summary>
 public class ChatMessageV1
 {
-    public string Role { get; set; } = "user"; // "user" | "system" | "assistant"
+    public string Role { get; set; } = "user";
     public string Content { get; set; } = string.Empty;
 }
 
 /// <summary>
-/// Response for v1 chat.
+///     Response for v1 chat.
 /// </summary>
 public class ChatResponseV1
 {
@@ -37,8 +37,8 @@ public class ChatResponseV1
 }
 
 /// <summary>
-/// Stream event for v1 chat streaming.
-/// Carries incremental text deltas; implementations may add event types.
+///     Stream event for v1 chat streaming.
+///     Carries incremental text deltas; implementations may add event types.
 /// </summary>
 public class ChatStreamEventV1
 {

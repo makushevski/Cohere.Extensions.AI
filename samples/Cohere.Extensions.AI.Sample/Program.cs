@@ -1,22 +1,17 @@
-using Microsoft.Extensions.AI;
+﻿using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
-using Cohere.Extensions.AI;
 
-namespace ConsoleSample;
+namespace Cohere.Extensions.AI.Sample;
 
-class Program
+internal static class Program
 {
-    static async Task Main()
+    private static async Task Main()
     {
-        // Configure DI container and register Cohere-backed IChatClient.
-        // API key is read from COHERE_API_KEY environment variable if not provided explicitly.
         var services = new ServiceCollection();
 
-        services.AddCohereChatClient(apiKey: null, configure: opts =>
+        services.AddCohereChatClient(null, opts =>
         {
-            // Default model (can be overridden per request via ChatOptions.ModelId).
             opts.ModelId = "command-r-plus";
-            // For demo reliability, use v1 chat which returns a simple text.
             opts.UseV1 = true;
         });
 
@@ -30,23 +25,19 @@ class Program
         };
 
         var options = new ChatOptions();
+        var ct = new CancellationTokenSource().Token;
 
         Console.WriteLine("=== Non-streaming ===");
-        var response = await chat.GetResponseAsync(messages, options, CancellationToken.None);
+        var response = await chat.GetResponseAsync(messages, options, ct);
         Console.WriteLine(response.Text);
 
         Console.WriteLine();
         Console.WriteLine("=== Streaming ===");
-        await foreach (var update in chat.GetStreamingResponseAsync(messages, options, CancellationToken.None))
-        {
+        await foreach (var update in chat.GetStreamingResponseAsync(messages, options, ct))
             if (!string.IsNullOrEmpty(update.Text))
-            {
                 Console.Write(update.Text);
-            }
-        }
 
         Console.WriteLine();
         Console.WriteLine("\nDone.");
     }
 }
-
