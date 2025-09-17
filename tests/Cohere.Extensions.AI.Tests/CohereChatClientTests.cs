@@ -16,7 +16,7 @@ public class CohereChatClientTests
         // Arrange
         var fake = new FakeCohereClient
         {
-            OnChatAsync = req => Task.FromResult(new ChatResponseV2 { Id = "id", Text = "ok" })
+            OnChatAsync = req => Task.FromResult(new ChatResponseV2 {Text = "ok" })
         };
 
         var sut = new CohereChatClient(fake, new CohereChatClientOptions { ModelId = "command" });
@@ -58,7 +58,7 @@ public class CohereChatClientTests
                 deltas.Add(u.Text!);
 
         // Assert
-        CollectionAssert.AreEqual(new[] { "a", "b" }, deltas);
+        Assert.That(deltas, Is.EqualTo(new[] { "a", "b" }).AsCollection);
     }
 
     [Test]
@@ -71,7 +71,7 @@ public class CohereChatClientTests
             OnChatV1Async = req =>
             {
                 captured = req;
-                return Task.FromResult(new CohV1.ChatResponseV1 { Id = "id", Text = "resp" });
+                return Task.FromResult(new CohV1.ChatResponseV1 { Text = "resp" });
             }
         };
 
