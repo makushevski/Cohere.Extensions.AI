@@ -16,7 +16,17 @@ public class CohereChatClientTests
         // Arrange
         var fake = new FakeCohereClient
         {
-            OnChatAsync = req => Task.FromResult(new ChatResponseV2 {Text = "ok" })
+            OnChatAsync = req => Task.FromResult(new ChatResponseV2
+            {
+                Message = new ChatMessageResponseV2
+                {
+                    Role = "assistant",
+                    Content = new List<ChatContentBlockV2>
+                    {
+                        new ChatContentBlockV2 { Type = "output_text", Text = "ok" }
+                    }
+                }
+            })
         };
 
         var sut = new CohereChatClient(fake, new CohereChatClientOptions { ModelId = "command" });

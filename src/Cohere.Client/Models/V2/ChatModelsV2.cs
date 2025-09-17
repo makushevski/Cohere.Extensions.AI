@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Cohere.Client.Models.V2;
 
@@ -8,16 +10,47 @@ public class ChatRequestV2
     public IList<ChatMessageV2> Messages { get; set; } = new List<ChatMessageV2>();
 }
 
+// Request message
 public class ChatMessageV2 : ChatMessageBase
 {
 }
 
+// Response models (v2 returns a message object with content blocks)
 public class ChatResponseV2
 {
-    public string Text { get; set; } = string.Empty;      // MEAI читает только Text
+    // Top-level assistant message as returned by v2 API
+    public ChatMessageResponseV2? Message { get; set; }
+
+    // Convenience: joined text from textual content blocks
+    [JsonIgnore]
+    public string Text => Message?.Text ?? string.Empty;
+}
+
+public class ChatMessageResponseV2
+{
+    public string Role { get; set; } = "assistant";
+    public IList<ChatContentBlockV2> Content { get; set; } = new List<ChatContentBlockV2>();
+
+    [JsonIgnore]
+    public string Text => string.Concat(Content
+        .Where(b => b.IsTextLike)
+        .Select(b => b.Text)
+        .Where(s => !string.IsNullOrEmpty(s)));
+}
+
+public class ChatContentBlockV2
+{
+    public string Type { get; set; } = string.Empty; // e.g. "output_text", "input_text", etc.
+    public string? Text { get; set; }
+
+    [JsonIgnore]
+    public bool IsTextLike =>
+        Type.Contains("text", System.StringComparison.OrdinalIgnoreCase);
 }
 
 public class ChatStreamEventV2 : ITextDelta
 {
+    // Will be populated by SSE reader; for v2 the raw event payload can vary.
     public string? Delta { get; set; }
 }
+
