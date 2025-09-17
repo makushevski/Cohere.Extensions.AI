@@ -2,6 +2,7 @@ using Cohere.Client;
 using Cohere.Client.Abstractions;
 using Cohere.Client.Models;
 using Cohere.Client.Models.V1;
+using Cohere.Client.Models.V2;
 
 namespace Cohere.Extensions.AI.Tests.Fakes;
 

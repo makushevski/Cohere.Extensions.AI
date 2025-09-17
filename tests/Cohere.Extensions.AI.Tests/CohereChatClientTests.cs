@@ -1,3 +1,4 @@
+using Cohere.Client.Models.V2;
 using Cohere.Extensions.AI.Chat;
 using Cohere.Extensions.AI.Tests.Fakes;
 using Coh = Cohere.Client.Models;
@@ -15,7 +16,7 @@ public class CohereChatClientTests
         // Arrange
         var fake = new FakeCohereClient
         {
-            OnChatAsync = req => Task.FromResult(new Coh.ChatResponseV2 { Id = "id", Text = "ok" })
+            OnChatAsync = req => Task.FromResult(new ChatResponseV2 { Id = "id", Text = "ok" })
         };
 
         var sut = new CohereChatClient(fake, new CohereChatClientOptions { ModelId = "command" });
@@ -42,8 +43,8 @@ public class CohereChatClientTests
         {
             OnChatStreamAsync = req => GetAsync(new[]
             {
-                new Coh.ChatStreamEventV2 { Delta = "a" },
-                new Coh.ChatStreamEventV2 { Delta = "b" }
+                new ChatStreamEventV2 { Delta = "a" },
+                new ChatStreamEventV2 { Delta = "b" }
             })
         };
 

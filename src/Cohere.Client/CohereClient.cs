@@ -13,6 +13,7 @@ using Cohere.Client.Configuration;
 using Cohere.Client.Helpers;
 using Cohere.Client.Models;
 using Cohere.Client.Models.V1;
+using Cohere.Client.Models.V2;
 
 namespace Cohere.Client;
 
@@ -24,11 +25,8 @@ public class CohereClient : ICohereClient
     public CohereClient(string apiKey, HttpClient? httpClient = null, Uri? baseUri = null)
     {
         if (string.IsNullOrWhiteSpace(apiKey)) throw new ArgumentException("API key must be provided", nameof(apiKey));
-
-        httpHelpers = new HttpHelpers(httpClient ?? new HttpClient(), baseUri ?? new Uri(Constants.CohereApiUri), httpClient is null);
-
-        /*if (!this.httpClient.DefaultRequestHeaders.Contains("Authorization"))
-            this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);*/
+        var authProvider = new AuthProvider(apiKey);
+        httpHelpers = new HttpHelpers(httpClient ?? new HttpClient(), baseUri ?? new Uri(Constants.CohereApiUri), authProvider, httpClient is null);
     }
 
     public Task<ChatResponseV1> ChatV1Async(ChatRequestV1 request, CancellationToken cancellationToken = default)

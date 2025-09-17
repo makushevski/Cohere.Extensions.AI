@@ -7,61 +7,51 @@ using System.Text.Json;
 using System.Threading;
 using Cohere.Client.Configuration;
 using Cohere.Client.Models;
-using Cohere.Client.Models.V1;
 
 namespace Cohere.Client.Helpers;
 
 internal static class SseStreamReader
 {
-    public static async IAsyncEnumerable<TEvent> ReadSseStreamAsync<TEvent>(Stream input,
+    public static async IAsyncEnumerable<TEvent> ReadSseStreamAsync<TEvent>(
+        Stream input,
         [EnumeratorCancellation] CancellationToken ct)
+        where TEvent : ITextDelta, new()
     {
         using var reader = new StreamReader(input, Encoding.UTF8);
 
-        string? line;
-        while (!reader.EndOfStream && (line = await reader.ReadLineAsync(ct).ConfigureAwait(false)) is not null)
+        while (!reader.EndOfStream && await reader.ReadLineAsync(ct).ConfigureAwait(false) is { } line)
         {
             ct.ThrowIfCancellationRequested();
 
-            if (line.Length == 0) continue; // keep-alive/record delimiter
+            if (line.Length == 0) continue; // keep-alive / разделитель
 
-            if (line.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+            if (!line.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var data = line.AsSpan(5).TrimStart().ToString();
+            if (string.IsNullOrWhiteSpace(data)) continue;
+
+            if (string.Equals(data, "[DONE]", StringComparison.Ordinal))
+                yield break;
+
+            var evt = default(TEvent);
+
+            try
             {
-                var data = line.Substring(5).TrimStart();
-                if (string.IsNullOrWhiteSpace(data)) continue;
+                evt = JsonSerializer.Deserialize<TEvent>(data, JsonSettings.JsonOptions);
+            }
+            catch
+            {
+                // ignored
+            }
 
-                if (data == "[DONE]") yield break;
-
-                TEvent? evt = default;
-                var success = false;
-                try
-                {
-                    evt = JsonSerializer.Deserialize<TEvent>(data, JsonSettings.JsonOptions);
-                    success = evt is not null;
-                }
-                catch
-                {
-                    success = false;
-                }
-
-                if (success && evt is not null)
-                {
-                    yield return evt;
-                }
-                else
-                {
-                    // Fallback: try to wrap as a delta string when TEvent has a property named "Delta"
-                    if (typeof(TEvent) == typeof(ChatStreamEventV1))
-                    {
-                        var fallback = new ChatStreamEventV1 { Delta = data };
-                        yield return (TEvent)(object)fallback;
-                    }
-                    else if (typeof(TEvent) == typeof(ChatStreamEventV2))
-                    {
-                        var fallback = new ChatStreamEventV2 { Delta = data };
-                        yield return (TEvent)(object)fallback;
-                    }
-                }
+            if (evt is not null)
+            {
+                yield return evt;
+            }
+            else
+            {
+                yield return new TEvent { Delta = data };
             }
         }
     }

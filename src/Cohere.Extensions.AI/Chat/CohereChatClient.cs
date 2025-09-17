@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using Cohere.Client;
 using Cohere.Client.Abstractions;
 using Cohere.Client.Models;
+using Cohere.Client.Models.V2;
 using Microsoft.Extensions.AI;
 using CohereChatRequestV1 = Cohere.Client.Models.V1.ChatRequestV1;
 using CohereChatMessageV1 = Cohere.Client.Models.V1.ChatMessageV1;
