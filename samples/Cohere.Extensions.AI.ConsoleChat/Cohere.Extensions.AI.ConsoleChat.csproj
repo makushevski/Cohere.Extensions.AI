@@ -8,11 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Cohere.Extensions.AI" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Cohere.Extensions.AI\Cohere.Extensions.AI.csproj" />
   </ItemGroup>
 
 </Project>

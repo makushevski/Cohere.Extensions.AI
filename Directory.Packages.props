@@ -1,6 +1,7 @@
 <Project>
   <ItemGroup>
     <!-- Library dependencies -->
+    <PackageVersion Include="Cohere.Extensions.AI" Version="0.1.1" />
     <PackageVersion Include="Microsoft.Extensions.AI" Version="9.9.0" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
