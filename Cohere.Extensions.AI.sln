@@ -16,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{B726
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cohere.Extensions.AI.Sample", "samples\Cohere.Extensions.AI.Sample\Cohere.Extensions.AI.Sample.csproj", "{1394D4E8-5663-4BE4-86CC-CCB5DFFFC116}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cohere.Extensions.AI.ConsoleChat", "samples\Cohere.Extensions.AI.ConsoleChat\Cohere.Extensions.AI.ConsoleChat.csproj", "{4D479CFA-E52F-478A-98DD-CD7898247674}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,6 +88,18 @@ Global
 		{1394D4E8-5663-4BE4-86CC-CCB5DFFFC116}.Release|x64.Build.0 = Release|Any CPU
 		{1394D4E8-5663-4BE4-86CC-CCB5DFFFC116}.Release|x86.ActiveCfg = Release|Any CPU
 		{1394D4E8-5663-4BE4-86CC-CCB5DFFFC116}.Release|x86.Build.0 = Release|Any CPU
+		{4D479CFA-E52F-478A-98DD-CD7898247674}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D479CFA-E52F-478A-98DD-CD7898247674}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D479CFA-E52F-478A-98DD-CD7898247674}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4D479CFA-E52F-478A-98DD-CD7898247674}.Debug|x64.Build.0 = Debug|Any CPU
+		{4D479CFA-E52F-478A-98DD-CD7898247674}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4D479CFA-E52F-478A-98DD-CD7898247674}.Debug|x86.Build.0 = Debug|Any CPU
+		{4D479CFA-E52F-478A-98DD-CD7898247674}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D479CFA-E52F-478A-98DD-CD7898247674}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D479CFA-E52F-478A-98DD-CD7898247674}.Release|x64.ActiveCfg = Release|Any CPU
+		{4D479CFA-E52F-478A-98DD-CD7898247674}.Release|x64.Build.0 = Release|Any CPU
+		{4D479CFA-E52F-478A-98DD-CD7898247674}.Release|x86.ActiveCfg = Release|Any CPU
+		{4D479CFA-E52F-478A-98DD-CD7898247674}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -96,5 +110,6 @@ Global
 		{28FBE5FA-AC21-46D9-9E00-DC0AD3FA01CB} = {364899BE-CB13-4379-BB93-890B447EC615}
 		{3A7BF006-61A1-4770-A9BA-A960D945F23B} = {364899BE-CB13-4379-BB93-890B447EC615}
 		{1394D4E8-5663-4BE4-86CC-CCB5DFFFC116} = {B726ED22-788B-47A8-AC11-67584C178CCA}
+		{4D479CFA-E52F-478A-98DD-CD7898247674} = {B726ED22-788B-47A8-AC11-67584C178CCA}
 	EndGlobalSection
 EndGlobal

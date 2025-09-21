@@ -11,8 +11,8 @@ internal static class Program
 
         services.AddCohereChatClient(null, opts =>
         {
-            opts.ModelId = "command-r-plus";
-            opts.UseV1 = true;
+            opts.ModelId = "command-r-plus-08-2024";
+            //opts.UseV1 = true;
         });
 
         await using var provider = services.BuildServiceProvider();

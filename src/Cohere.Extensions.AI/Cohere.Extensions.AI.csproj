@@ -1,5 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <PackageId>Cohere.Extensions.AI</PackageId>
+    <Version>0.1.1</Version>
+    <Description>Adapter that integrates Cohere models with Microsoft.Extensions.AI.IChatClient. Enables seamless use of Cohere within the new .NET AI abstractions, including support for streaming responses, cancellation, and flexible model selection.</Description>
+    <PackageTags>cohere;ai;chat;sse;httpclient</PackageTags>
+    <RepositoryUrl>https://github.com/makushevski/Cohere.Extensions.AI</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/makushevski/Cohere.Extensions.AI</PackageProjectUrl>
+    <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Cohere.Client\Cohere.Client.csproj"/>
   </ItemGroup>
@@ -7,5 +18,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.AI"/>
     <PackageReference Include="Microsoft.Extensions.Http"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="" />
+    <None Include="../../assets/icon.png" Pack="true" PackagePath="icon.png" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>

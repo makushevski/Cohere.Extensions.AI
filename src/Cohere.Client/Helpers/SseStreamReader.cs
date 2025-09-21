@@ -7,62 +7,150 @@ using System.Text.Json;
 using System.Threading;
 using Cohere.Client.Configuration;
 using Cohere.Client.Models;
-using Cohere.Client.Models.V1;
+using Cohere.Client.Models.V2;
 
 namespace Cohere.Client.Helpers;
 
 internal static class SseStreamReader
 {
-    public static async IAsyncEnumerable<TEvent> ReadSseStreamAsync<TEvent>(Stream input,
+    private static readonly string[] DirectTextKeys = { "text", "text_delta" };
+    private static readonly string[] NestedContentKeys = { "message", "content", "content_delta", "delta" };
+
+    public static async IAsyncEnumerable<TEvent> ReadSseStreamAsync<TEvent>(
+        Stream input,
         [EnumeratorCancellation] CancellationToken ct)
+        where TEvent : ITextDelta, new()
     {
         using var reader = new StreamReader(input, Encoding.UTF8);
 
-        string? line;
-        while (!reader.EndOfStream && (line = await reader.ReadLineAsync(ct).ConfigureAwait(false)) is not null)
+        while (!reader.EndOfStream && await reader.ReadLineAsync(ct).ConfigureAwait(false) is { } line)
         {
             ct.ThrowIfCancellationRequested();
 
-            if (line.Length == 0) continue; // keep-alive/record delimiter
+            if (line.Length == 0) continue; // keep-alive / разделитель
 
-            if (line.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+            if (!line.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var data = line.AsSpan(5).TrimStart().ToString();
+            if (string.IsNullOrWhiteSpace(data)) continue;
+
+            if (string.Equals(data, "[DONE]", StringComparison.Ordinal))
+                yield break;
+
+            var evt = default(TEvent);
+
+            try
             {
-                var data = line.Substring(5).TrimStart();
-                if (string.IsNullOrWhiteSpace(data)) continue;
+                evt = JsonSerializer.Deserialize<TEvent>(data, JsonSettings.JsonOptions);
+            }
+            catch
+            {
+                // ignored
+            }
 
-                if (data == "[DONE]") yield break;
-
-                TEvent? evt = default;
-                var success = false;
-                try
+            if (evt is not null)
+            {
+                // Some APIs (e.g., Cohere v2) return structured JSON events where the text lives in nested fields.
+                // If Delta was not populated by deserialization, try to extract a reasonable text fragment.
+                if (evt is ChatStreamEventV2 v2 && v2.RawDelta.ValueKind != JsonValueKind.Undefined)
                 {
-                    evt = JsonSerializer.Deserialize<TEvent>(data, JsonSettings.JsonOptions);
-                    success = evt is not null;
-                }
-                catch
-                {
-                    success = false;
-                }
-
-                if (success && evt is not null)
-                {
-                    yield return evt;
-                }
-                else
-                {
-                    // Fallback: try to wrap as a delta string when TEvent has a property named "Delta"
-                    if (typeof(TEvent) == typeof(ChatStreamEventV1))
+                    var nested = TryExtractTextDelta(v2.RawDelta);
+                    if (!string.IsNullOrEmpty(nested))
                     {
-                        var fallback = new ChatStreamEventV1 { Delta = data };
-                        yield return (TEvent)(object)fallback;
-                    }
-                    else if (typeof(TEvent) == typeof(ChatStreamEventV2))
-                    {
-                        var fallback = new ChatStreamEventV2 { Delta = data };
-                        yield return (TEvent)(object)fallback;
+                        evt.Delta = nested;
                     }
                 }
+
+                if (string.IsNullOrEmpty(evt.Delta))
+                {
+                    evt.Delta = TryExtractTextDelta(data);
+                }
+
+                yield return evt;
+            }
+            else
+            {
+                // Fallback: surface the raw data so callers at least see something
+                yield return new TEvent { Delta = TryExtractTextDelta(data) ?? data };
             }
         }
+    }
+
+    private static string? TryExtractTextDelta(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            return TryExtractTextDelta(doc.RootElement);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string? TryExtractTextDelta(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString(),
+            JsonValueKind.Array => ExtractFromArray(element),
+            JsonValueKind.Object => ExtractFromObject(element),
+            _ => null
+        };
+    }
+
+    private static string? ExtractFromArray(JsonElement array)
+    {
+        var sb = new StringBuilder();
+        foreach (var item in array.EnumerateArray())
+        {
+            var part = TryExtractTextDelta(item);
+            if (!string.IsNullOrEmpty(part))
+            {
+                sb.Append(part);
+            }
+        }
+
+        return sb.Length > 0 ? sb.ToString() : null;
+    }
+
+    private static string? ExtractFromObject(JsonElement obj)
+    {
+        foreach (var key in DirectTextKeys)
+        {
+            if (obj.TryGetProperty(key, out var value) && value.ValueKind == JsonValueKind.String)
+            {
+                return value.GetString();
+            }
+        }
+
+        foreach (var key in NestedContentKeys)
+        {
+            if (!obj.TryGetProperty(key, out var nested)) continue;
+            var candidate = TryExtractTextDelta(nested);
+            if (!string.IsNullOrEmpty(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        foreach (var property in obj.EnumerateObject())
+        {
+            if (property.Value.ValueKind == JsonValueKind.String &&
+                property.Name.IndexOf("text", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return property.Value.GetString();
+            }
+
+            var nested = TryExtractTextDelta(property.Value);
+            if (!string.IsNullOrEmpty(nested))
+            {
+                return nested;
+            }
+        }
+
+        return null;
     }
 }

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cohere.Client.Models;
 using Cohere.Client.Models.V1;
+using Cohere.Client.Models.V2;
 
 namespace Cohere.Client.Abstractions;
 
