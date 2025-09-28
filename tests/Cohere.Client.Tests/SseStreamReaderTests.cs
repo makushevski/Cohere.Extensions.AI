@@ -3,8 +3,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Cohere.Client.Helpers;
 using Cohere.Client.Models.V2;
+using Cohere.Client.Services;
 using NUnit.Framework;
 
 namespace Cohere.Client.Tests;

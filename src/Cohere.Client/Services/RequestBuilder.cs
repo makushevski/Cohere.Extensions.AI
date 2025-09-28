@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Cohere.Client.Configuration;
 
-namespace Cohere.Client.Helpers;
+namespace Cohere.Client.Services;
 
 public class RequestBuilder
 {
@@ -18,7 +18,7 @@ public class RequestBuilder
         this.baseUrl = baseUrl;
     }
 
-    public HttpRequestMessage GetSseRequest<TRequest>(TRequest request, string relativePath)
+    public HttpRequestMessage BuildSseRequest<TRequest>(TRequest request, string relativePath)
     {
         var req = new HttpRequestMessage(HttpMethod.Post, new Uri(baseUrl, relativePath));
         req.Headers.Accept.Add(eventStreamMediaType);
@@ -27,7 +27,7 @@ public class RequestBuilder
         return req;
     }
 
-    public HttpRequestMessage GetPostRequest<TRequest>(TRequest request, string relativePath)
+    public HttpRequestMessage BuildPostRequest<TRequest>(TRequest request, string relativePath)
     {
         var req = new HttpRequestMessage(HttpMethod.Post, new Uri(baseUrl, relativePath))
         {

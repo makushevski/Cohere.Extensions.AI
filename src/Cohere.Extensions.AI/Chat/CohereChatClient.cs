@@ -176,23 +176,6 @@ public sealed class CohereChatClient : IChatClient
         return list;
     }
 
-    private static IList<CohereChatMessageV1> MapV1(IEnumerable<ChatMessage> messages)
-    {
-        var list = new List<CohereChatMessageV1>();
-        foreach (var item in messages)
-        {
-            if (item.Role == ChatRole.Tool) continue;
-
-            var content = item.Text;
-            var role = item.Role == ChatRole.System ? "system"
-                : item.Role == ChatRole.Assistant ? "assistant" : "user";
-
-            list.Add(new CohereChatMessageV1 { Role = role, Content = content });
-        }
-
-        return list;
-    }
-
     private static string? GetLastUserText(IEnumerable<ChatMessage> messages)
         => messages.LastOrDefault(m => m.Role == ChatRole.User)?.Text;
 

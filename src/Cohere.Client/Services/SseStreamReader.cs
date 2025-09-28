@@ -9,7 +9,7 @@ using Cohere.Client.Configuration;
 using Cohere.Client.Models;
 using Cohere.Client.Models.V2;
 
-namespace Cohere.Client.Helpers;
+namespace Cohere.Client.Services;
 
 internal static class SseStreamReader
 {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
@@ -9,9 +8,9 @@ using System.Threading.Tasks;
 using Cohere.Client.Configuration;
 using Cohere.Client.Models;
 
-namespace Cohere.Client.Helpers;
+namespace Cohere.Client.Services;
 
-internal class HttpHelpers : IDisposable
+internal class HttpRequestSender : IDisposable
 {
     private bool disposed = false;
     private readonly HttpClient httpClient;
@@ -19,7 +18,7 @@ internal class HttpHelpers : IDisposable
     private readonly bool disposeHttpClient;
     private readonly RequestBuilder requestBuilder;
 
-    public HttpHelpers(HttpClient httpClient, Uri baseUrl, IAuthProvider authProvider, bool disposeHttpClient = true)
+    public HttpRequestSender(HttpClient httpClient, Uri baseUrl, IAuthProvider authProvider, bool disposeHttpClient = true)
     {
         this.httpClient = httpClient;
         this.authProvider = authProvider;
@@ -30,7 +29,7 @@ internal class HttpHelpers : IDisposable
     public async IAsyncEnumerable<TEvent> PostSseAsync<TRequest, TEvent>(string relativePath, TRequest request,
         [EnumeratorCancellation] CancellationToken ct) where TEvent : ITextDelta, new()
     {
-        using var req = requestBuilder.GetSseRequest(request, relativePath);
+        using var req = requestBuilder.BuildSseRequest(request, relativePath);
         authProvider.Apply(req);
         using var resp = await httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct)
             .ConfigureAwait(false);
@@ -46,7 +45,7 @@ internal class HttpHelpers : IDisposable
     public async Task<TResponse> PostJsonAsync<TRequest, TResponse>(string relativePath, TRequest request,
         CancellationToken ct)
     {
-        using var req = requestBuilder.GetPostRequest(request, relativePath);
+        using var req = requestBuilder.BuildPostRequest(request, relativePath);
         authProvider.Apply(req);
         using var resp = await httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct)
             .ConfigureAwait(false);

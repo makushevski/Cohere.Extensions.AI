@@ -1,7 +1,7 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Headers;
 
-namespace Cohere.Client.Helpers;
+namespace Cohere.Client.Services;
 
 public interface IAuthProvider
 {
